@@ -1,0 +1,66 @@
+services:
+  medicalclinic:
+    container_name: clinic-medical
+    image: clinic-medical
+    build:
+      context: ./clinic-medical
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/test
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
+      SPRING_CLOUD_OPENFEIGN_CLIENT_CONFIG_PATIENTCLIENT_URL: http://patient-client:8888
+    depends_on:
+      - postgres
+      - patient-client
+    networks:
+      - backend
+
+  clinic-medical-microservice:
+    container_name: clinic-medical-microservice
+    build:
+      context: ./clinic-medical-microservice
+    ports:
+      - "8888:8888"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/test
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
+      SPRING_CLOUD_OPENFEIGN_CLIENT_CONFIG_PATIENTCLIENT_URL: http://patient-client:8888
+    depends_on:
+      - postgres
+      - patient-client
+    networks:
+      - backend
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      POSTGRES_DB: test
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5434:5432"
+    networks:
+      - backend
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.pl
+      PGADMIN_DEFAULT_PASSWORD: password
+    ports:
+      - "80:80"
+    depends_on:
+      - postgres
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
